@@ -78,6 +78,7 @@ export default function ProjectPage() {
   const projectId = params.id as string
 
   const [project, setProject] = useState<Project | null>(null)
+  const [members, setMembers] = useState<ProjectMember[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [members, setMembers] = useState<ProjectMember[]>([])
@@ -201,6 +202,13 @@ export default function ProjectPage() {
       mounted = false
     }
   }, [projectId, user, authLoading, router])
+
+  // Load members when project changes
+  useEffect(() => {
+    if (project?.members) {
+      getProjectMembers(project.members).then(setMembers)
+    }
+  }, [project?.members])
 
   const callApiWithRetry = async (action: string, apiCall: () => Promise<Response>): Promise<any> => {
     const response = await apiCall()
@@ -1069,6 +1077,16 @@ export default function ProjectPage() {
                     <div className="text-center py-8">
                       <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                       <p className="text-muted-foreground">Loading team members...</p>
+                  {members.map((member) => (
+                    <div key={member.user_id} className="flex items-center gap-3 p-3 rounded-lg border">
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Users className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium">{member.name}</p>
+                        <p className="text-sm text-muted-foreground">{member.email}</p>
+                      </div>
+                      {member.user_id === project.created_by && <Badge className="ml-auto">Owner</Badge>}
                     </div>
                   )}
                 </div>
